@@ -29,7 +29,7 @@ Hybrid phishing detection platform combining Machine Learning, URL analysis, SSL
 [Commands here]
 
 ## Screenshots
-[Add screenshots]
+![Dashboard](Screenshots/dashboard.png)
 
 ## Future Enhancements
 - Real-time monitoring
