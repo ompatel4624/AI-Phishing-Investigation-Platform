@@ -59,7 +59,7 @@ The platform performs multi-layer phishing analysis by combining machine learnin
 
 ## Dashboard
 
-![Dashboard](Screenshots/dashboard.png)
+![Dashboard](Screenshots/Dashboard.png)
 
 ---
 
