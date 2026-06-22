@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+*.log
+analyzers.zip
+venvcrash.txt
+config.py

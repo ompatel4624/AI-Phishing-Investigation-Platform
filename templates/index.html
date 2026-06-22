@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Phishing Investigation Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="topbar">
+    <div class="logo">🛡 AI Phishing Investigation Platform</div>
+    <div class="subtitle">
+        URL Analysis • Threat Intelligence • Domain Intelligence • Crawler Detection
+    </div>
+</div>
+
+<form method="POST" class="search-box">
+    <input type="text" name="url" placeholder="Enter domain or URL" required>
+    <button type="submit">Analyze</button>
+</form>
+
+{% if result %}
+<div class="dashboard">
+
+    <!-- Main Panel -->
+    <div class="panel large">
+        <div class="panel-title verdict {{ result.verdict|lower|replace(' ', '-') }}">
+            {{ result.verdict }}
+        </div>
+
+        <div class="metrics">
+            <div class="metric">
+                <span>Risk Score</span>
+                <strong>{{ result.score }}/100</strong>
+            </div>
+
+            <div class="metric">
+                <span>AI Confidence</span>
+                <strong>{{ result.ml_probability }}%</strong>
+            </div>
+
+            <div class="metric">
+                <span>Triggered Signals</span>
+                <strong>{{ result.reasons|length }}</strong>
+            </div>
+        </div>
+
+        <div class="risk-bar">
+            <div class="risk-fill" style="width: {{ result.score }}%"></div>
+        </div>
+
+        <div class="inner-panel">
+            <h3>🧠 AI Reasoning</h3>
+            <p>
+                The detector identified {{ result.reasons|length }} suspicious indicators while examining the URL structure, SSL certificate, domain intelligence, redirect behavior and page content.
+            </p>
+
+            <ul>
+                {% for reason in result.reasons[:5] %}
+                <li>{{ reason }}</li>
+                {% endfor %}
+            </ul>
+
+            <h3>⚖️ AI Evaluation</h3>
+            <p>
+                Rule-Based Score: {{ result.total_rule_score }}/100<br>
+                Machine Learning Confidence: {{ result.ml_probability }}%
+            </p>
+        </div>
+    </div>
+
+    <!-- Detection Summary -->
+    <div class="panel large">
+        <div class="panel-title">🔎 Detection Summary</div>
+
+        <div class="summary-section">
+            <h4>1. Typosquatting</h4>
+            {% if 'typosquatting' in result.reasons|join(' ')|lower or 'deceptive subdomain' in result.reasons|join(' ')|lower %}
+                <p>{{ result.reasons[0] }}</p>
+            {% else %}
+                <p>No typosquatting indicators detected.</p>
+            {% endif %}
+        </div>
+
+        <div class="summary-section">
+            <h4>2. Domain & SSL</h4>
+            <p>
+                {% if result.ssl.valid %}
+                    SSL certificate is valid.
+                {% else %}
+                    SSL certificate is invalid or missing.
+                {% endif %}
+            </p>
+
+            <p>
+                {% if result.domain.age_years %}
+                    Domain age: {{ result.domain.age_years }} years
+                {% else %}
+                    Domain age could not be verified.
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="summary-section">
+            <h4>3. Redirect Behaviour</h4>
+            <p>
+                Redirect Count: {{ result.crawl.redirects }}<br>
+                Final URL: {{ result.crawl.final_url }}
+
+            </p>
+        </div>
+
+        <div class="summary-section">
+            <h4>4. Threat Indicators</h4>
+            <p>
+                {% for reason in result.reasons[:3] %}
+                    • {{ reason }}<br>
+                {% endfor %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Domain Intelligence -->
+    <div class="panel">
+        <div class="panel-title">🌐 Domain Intelligence</div>
+
+        <div class="info-row">
+            <span>IP Address</span>
+            <strong>{{ result.domain.ip }}</strong>
+        </div>
+
+        <div class="info-row">
+            <span>Registrar</span>
+            <strong>{{ result.domain.registrar }}</strong>
+        </div>
+
+        <div class="info-row">
+            <span>Domain Age</span>
+            <strong>
+                {% if result.domain.age_years %}
+                    {{ result.domain.age_years }} years
+                {% else %}
+                    Unknown
+                {% endif %}
+            </strong>
+        </div>
+    </div>
+
+    <!-- SSL -->
+    <div class="panel">
+        <div class="panel-title">🔐 SSL Certificate</div>
+
+        <div class="info-row">
+            <span>Status</span>
+            <strong>
+                {% if result.ssl.valid %}
+                    Valid
+                {% else %}
+                    Invalid / Missing
+                {% endif %}
+            </strong>
+        </div>
+
+        <div class="info-row">
+        <span>Organization</span>
+        <strong>{{ result.ssl.issuer.organization }}</strong>
+    </div>
+
+    <div class="info-row">
+        <span>Common Name</span>
+        <strong>{{ result.ssl.issuer.common_name }}</strong>
+    </div>
+
+    <div class="info-row">
+        <span>Country</span>
+        <strong>{{ result.ssl.issuer.country }}</strong>
+    </div>
+
+    <div class="info-row">
+        <span>Issued On</span>
+        <strong>{{ result.ssl.issued_on }}</strong>
+    </div>
+
+    <div class="info-row">
+        <span>Expires On</span>
+        <strong>{{ result.ssl.expires_on }}</strong>
+    </div>
+
+    <div class="info-row">
+        <span>Days Left</span>
+        <strong>{{ result.ssl.days_left }}</strong>
+    </div>
+</div>
+
+    <!-- Threat Signals -->
+<div class="panel">
+    <div class="panel-title">🚨 Threat Intelligence</div>
+
+    <!-- Google Safe Browsing Output -->
+
+    {% if threat_intel %}
+    <div class="signal">
+        <strong>Google Safe Search Status:</strong> {{ threat_intel.status }}
+    </div>
+
+    <div class="signal">
+        <strong>Reason:</strong> {{ threat_intel.reason }}
+    </div>
+    {% else %}
+    <div class="signal">
+        No threat intelligence data available
+    </div>
+    {% endif %}
+</div>
+   
+    <!-- Crawler -->
+    <div class="panel">
+        <div class="panel-title">🕷 Crawler Findings</div>
+
+        <div class="info-row">
+            <span>Redirects</span>
+            <strong>{{ result.crawl.redirects }}</strong>
+        </div>
+
+        <div class="info-row">
+            <span>Password Fields</span>
+            <strong>{{ result.crawl.password_fields }}</strong>
+        </div>
+
+        <div class="info-row">
+            <span>External Links</span>
+            <strong>{{ result.crawl.external_links }}</strong>
+        </div>
+
+        <div class="info-row">
+    <span>Final URL</span>
+    <strong class="url-break">
+        <a href="{{ result.crawl.final_url }}"
+           target="_blank"
+           rel="noopener noreferrer"
+           style="color: #7dd3fc; text-decoration: none; word-break: break-all;">
+            {{ result.crawl.final_url }}
+        </a>
+    </strong>
+</div>
+    </div>
+
+</div>
+{% endif %}
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
