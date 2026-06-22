@@ -34,6 +34,7 @@ The platform performs multi-layer phishing analysis by combining machine learnin
 
 ### Machine Learning
 - Scikit-learn
+- Random Forest Classifier
 - TF-IDF Vectorization
 - Logistic Regression
 
